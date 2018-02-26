@@ -1,0 +1,7 @@
+libmx_dio_ctl.so.1 libmoxa-dio-control1 #MINVER#
+ mx_dio_init@Base 1.1.0
+ mx_dout_set_state@Base 1.1.0
+ mx_dout_get_state@Base 1.1.0
+ mx_din_get_state@Base 1.1.0
+ mx_din_set_event@Base 1.1.0
+ mx_din_get_event@Base 1.1.0

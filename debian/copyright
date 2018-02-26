@@ -1,13 +1,14 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: moxa-pushbtn
-Source: http://gitlab.syssw.moxa.com:8888/HarryYJ_Jhou/moxa-dio-control
+Upstream-Name: moxa-dio-control
+Source: http://gitlab.syssw.moxa.com/MXcore-Package/moxa-dio-control
 
 Files: *
-Copyright: 2017 Harry YJ Jhou <HarryYJ.Jhou@moxa.com>
+Copyright: 2017 MXcore
 License:   Apache-2.0
 
 Files: debian/*
 Copyright: 2017 Harry YJ Jhou <HarryYJ.Jhou@moxa.com>
+           2018 Ken CJ Chou <KenCJ.Chou@moxa.com>
 License:   Apache-2.0
 
 License:   Apache-2.0

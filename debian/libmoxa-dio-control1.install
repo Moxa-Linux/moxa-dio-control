@@ -1,0 +1,2 @@
+#!/usr/bin/dh-exec
+libmx_dio_ctl.so.1* /lib/${DEB_HOST_MULTIARCH}/
