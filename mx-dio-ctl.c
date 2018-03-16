@@ -18,15 +18,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <getopt.h>
+#include <unistd.h>
 
 #include "mx_dio.h"
 
 #define UNSET -1
 
 enum action_type {
-	GET_DIN = 0,
-	GET_DOUT = 1,
+	GET_DOUT = 0,
+	GET_DIN = 1,
 	SET_DOUT = 2
 };
 
@@ -39,43 +39,49 @@ struct action_struct {
 void usage(FILE *fp)
 {
 	fprintf(fp, "Usage:\n");
-	fprintf(fp, "	mx-dio-ctl <-g #DIN/DOUT |-s #state > -p <#port>\n\n");
+	fprintf(fp, "	mx-dio-ctl <-g #DOUT/DIN |-s #state > -n <#port>\n\n");
 	fprintf(fp, "OPTIONS:\n");
 	fprintf(fp, "	-g <#DI/DO>\n");
-	fprintf(fp, "		Set target to DIN or DOUT port\n");
-	fprintf(fp, "		0 --> DIN\n");
-	fprintf(fp, "		1 --> DOUT\n");
+	fprintf(fp, "		Set target to DOUT or DIN port\n");
+	fprintf(fp, "		0 --> DOUT\n");
+	fprintf(fp, "		1 --> DIN\n");
 	fprintf(fp, "	-s <#state>\n");
 	fprintf(fp, "		Set state for target DOUT port\n");
 	fprintf(fp, "		0 --> LOW\n");
 	fprintf(fp, "		1 --> HIGH\n");
-	fprintf(fp, "	-p <#port>\n");
+	fprintf(fp, "	-n <#port>\n");
 	fprintf(fp, "		Set target port number\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Example:\n");
 	fprintf(fp, "	Get value from DIN port 1\n");
-	fprintf(fp, "	# mx_dio_control -g 1 -p 1\n");
+	fprintf(fp, "	# mx_dio_control -g 1 -n 1\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "	Set DOUT port 2 value to LOW\n");
-	fprintf(fp, "	# mx_dio_control -s 0 -p 2\n");
+	fprintf(fp, "	# mx_dio_control -s 0 -n 2\n");
 }
 
 void do_action(struct action_struct action)
 {
 	switch (action.type) {
 	case GET_DIN:
-		if (mx_din_get_state(action.port, &action.state) < 0)
-			exit(-1);
+		if (mx_din_get_state(action.port, &action.state) < 0) {
+			fprintf(stderr, "Failed to get DIN state\n");
+			exit(1);
+		}
 		printf("DIN port %d state: %d\n", action.port, action.state);
 		break;
 	case GET_DOUT:
-		if (mx_dout_get_state(action.port, &action.state) < 0)
-			exit(-1);
+		if (mx_dout_get_state(action.port, &action.state) < 0) {
+			fprintf(stderr, "Failed to get DOUT state\n");
+			exit(1);
+		}
 		printf("DOUT port %d state: %d\n", action.port, action.state);
 		break;
 	case SET_DOUT:
-		if (mx_dout_set_state(action.port, action.state) < 0)
-			exit(-1);
+		if (mx_dout_set_state(action.port, action.state) < 0) {
+			fprintf(stderr, "Failed to set DOUT state\n");
+			exit(1);
+		}
 		printf("DOUT port %d state: %d\n", action.port, action.state);
 		break;
 	}
@@ -83,13 +89,6 @@ void do_action(struct action_struct action)
 
 int main(int argc, char *argv[])
 {
-	struct option long_options[] = {
-		{"help", no_argument, 0, 'h'},
-		{"get-dio", required_argument, 0, 'g'},
-		{"set-dout", required_argument, 0, 's'},
-		{"port", required_argument, 0, 'p'},
-		{0, 0, 0, 0}
-	};
 	struct action_struct action = {
 		.type = UNSET,
 		.port = UNSET,
@@ -98,7 +97,7 @@ int main(int argc, char *argv[])
 	int c;
 
 	while (1) {
-		c = getopt_long(argc, argv, "hg:s:p:", long_options, NULL);
+		c = getopt(argc, argv, "hg:s:n:");
 		if (c == -1)
 			break;
 
@@ -110,7 +109,7 @@ int main(int argc, char *argv[])
 			if (action.type != UNSET) {
 				fprintf(stderr, "action has already set\n");
 				usage(stderr);
-				exit(-1);
+				exit(99);
 			}
 			action.type = atoi(argv[optind - 1]);
 			break;
@@ -118,17 +117,17 @@ int main(int argc, char *argv[])
 			if (action.type != UNSET) {
 				fprintf(stderr, "action has already set\n");
 				usage(stderr);
-				exit(-1);
+				exit(99);
 			}
 			action.type = SET_DOUT;
 			action.state = atoi(argv[optind - 1]);
 			break;
-		case 'p':
+		case 'n':
 			action.port = atoi(argv[optind - 1]);
 			break;
 		default:
 			usage(stderr);
-			exit(-1);
+			exit(99);
 		}
 	}
 
@@ -139,22 +138,25 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "\n");
 
 		usage(stderr);
-		exit(-1);
+		exit(99);
 	}
 
 	if (action.type == UNSET) {
 		fprintf(stderr, "action type is unset\n");
 		usage(stderr);
-		exit(-1);
+		exit(99);
 	}
 
 	if (action.port == UNSET) {
 		fprintf(stderr, "port number is unset\n");
 		usage(stderr);
-		exit(-1);
+		exit(99);
 	}
 
-	mx_dio_init();
+	if (mx_dio_init() < 0) {
+		fprintf(stderr, "Initialize Moxa dio control library failed\n");
+		exit(1);
+	}
 
 	do_action(action);
 
