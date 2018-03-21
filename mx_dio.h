@@ -1,5 +1,5 @@
 /*
- * Copyright (C) MOXA Inc. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Name:
  *	MOXA DIO Library
@@ -12,8 +12,6 @@
  *	2015	Harry YJ Jhou	<HarryYJ.Jhou@moxa.com>
  *	2017	Ethan SH Lee	<EthanSH.Lee@moxa.com>
  *	2018	Ken CJ Chou	<KenCJ.Chou@moxa.com>
- *
- * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef _MOXA_DIO_H
