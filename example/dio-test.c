@@ -16,6 +16,8 @@
 #include <unistd.h>
 #include <moxa/mx_dio.h>
 
+extern char mx_errmsg[256];
+
 void event_func(int diport)
 {
 	printf("\t--------\n");
@@ -38,9 +40,10 @@ int main(int argc, char *argv[])
 	if (ret < 0) {
 		fprintf(stderr, "Initialize Moxa dio control library failed\n");
 		fprintf(stderr, "Error code: %d\n", ret);
+		fprintf(stderr, "Error message: %s\n", mx_errmsg);
 		exit(1);
 	}
-	
+
 	printf("Testing DIO from DOUT port %d to DIN port %d:\n", doport, diport);
 	printf("Please make sure they are connected to each other.\n\n");
 
@@ -49,6 +52,7 @@ int main(int argc, char *argv[])
 	if (ret < 0) {
 		fprintf(stderr, "Failed to set DOUT port %d\n", doport);
 		fprintf(stderr, "Error code: %d\n", ret);
+		fprintf(stderr, "Error message: %s\n", mx_errmsg);
 		exit(1);
 	}
 
@@ -59,6 +63,7 @@ int main(int argc, char *argv[])
 	if (ret < 0) {
 		fprintf(stderr, "Failed to get DIN port %d\n", diport);
 		fprintf(stderr, "Error code: %d\n", ret);
+		fprintf(stderr, "Error message: %s\n", mx_errmsg);
 		exit(1);
 	}
 	printf("\tDIN port %d's state is %d.\n\n", diport, state);
@@ -68,6 +73,7 @@ int main(int argc, char *argv[])
 	if (ret < 0){
 		fprintf(stderr, "Failed to set event of DIN port %d\n", diport);
 		fprintf(stderr, "Error code: %d\n", ret);
+		fprintf(stderr, "Error message: %s\n", mx_errmsg);
 		exit(1);
 	}
 
@@ -79,6 +85,7 @@ int main(int argc, char *argv[])
 	if (ret < 0) {
 		fprintf(stderr, "Failed to set DOUT port %d\n", doport);
 		fprintf(stderr, "Error code: %d\n", ret);
+		fprintf(stderr, "Error message: %s\n", mx_errmsg);
 		exit(1);
 	}
 
