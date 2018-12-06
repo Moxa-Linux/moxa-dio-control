@@ -42,7 +42,7 @@ void usage(FILE *fp)
 	fprintf(fp, "	mx-dio-ctl <-g #DOUT/DIN |-s #state > -n <#port>\n\n");
 	fprintf(fp, "OPTIONS:\n");
 	fprintf(fp, "	-g <#DI/DO>\n");
-	fprintf(fp, "		Set target to DOUT or DIN port\n");
+	fprintf(fp, "		Get target to DOUT or DIN port\n");
 	fprintf(fp, "		0 --> DOUT\n");
 	fprintf(fp, "		1 --> DIN\n");
 	fprintf(fp, "	-s <#state>\n");
@@ -54,10 +54,10 @@ void usage(FILE *fp)
 	fprintf(fp, "\n");
 	fprintf(fp, "Example:\n");
 	fprintf(fp, "	Get value from DIN port 1\n");
-	fprintf(fp, "	# mx_dio_control -g 1 -n 1\n");
+	fprintf(fp, "	# mx-dio-ctl -g 1 -n 1\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "	Set DOUT port 2 value to LOW\n");
-	fprintf(fp, "	# mx_dio_control -s 0 -n 2\n");
+	fprintf(fp, "	# mx-dio-ctl -s 0 -n 2\n");
 }
 
 int my_atoi(const char *nptr, int *number)
