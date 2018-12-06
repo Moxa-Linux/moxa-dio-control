@@ -13,7 +13,10 @@
 * `NUM_OF_DOUT_PORTS`: The number of DOUT ports on this device
 * `GPIO_NUMS_OF_DIN_PORTS`: The DIN ports' GPIO pin number
 * `GPIO_NUMS_OF_DOUT_PORTS`: The DOUT ports' GPIO pin number
+* `DIN_NODE`: The DIN device node of IOCTL
+* `DOUT_NODE`: The DOUT device node of IOCTL
 * `DIN_PORT_POLLING_INTERVAL`: The time interval between polling DIN ports for listening event
+
 
 ### Example1: UC-8410
 
@@ -25,6 +28,9 @@
 
 	"NUM_OF_DIN_PORTS": 4,
 	"NUM_OF_DOUT_PORTS": 4,
+
+	"DIN_NODE": "/dev/di",
+	"DOUT_NODE": "/dev/do",
 
 	"DIN_PORT_POLLING_INTERVAL": 100
 }

@@ -32,7 +32,6 @@
 #define CONF_FILE "/etc/moxa-configs/moxa-dio-control.json"
 #define CONF_VER_SUPPORTED "1.1.*"
 
-#define DIO_DEVICE_NODE "/dev/dio"
 #define MAX_FILEPATH_LEN 256	/* reserved length for file path */
 #define DIN_INACCURACY 24000
 
@@ -207,22 +206,22 @@ static int init_din_event_array(void)
 
 static int set_dout_state_ioctl(int doport, int state)
 {
-	struct dio_struct dio;
-	const char *dio_node;
+	struct dio_struct dout;
+	const char *dout_node;
 	int fd;
 
-	if (obj_get_str(config, "DIO_NODE", &dio_node) < 0)
+	if (obj_get_str(config, "DOUT_NODE", &dout_node) < 0)
 		return E_CONFERR;
 
-	fd = open(dio_node, O_RDWR);
+	fd = open(dout_node, O_RDWR);
 	if (fd < 0) {
-		sprintf(mx_errmsg, "open %s: %s", dio_node, strerror(errno));
+		sprintf(mx_errmsg, "open %s: %s", dout_node, strerror(errno));
 		return E_SYSFUNCERR;
 	}
 
-	dio.port = doport;
-	dio.data = state;
-	if (ioctl(fd, IOCTL_SET_DOUT, &dio) < 0) {
+	dout.port = doport;
+	dout.data = state;
+	if (ioctl(fd, IOCTL_SET_DOUT, &dout) < 0) {
 		sprintf(mx_errmsg, "ioctl: IOCTL_SET_DOUT: %s", strerror(errno));
 		close(fd);
 		return E_SYSFUNCERR;
@@ -234,55 +233,55 @@ static int set_dout_state_ioctl(int doport, int state)
 
 static int get_dout_state_ioctl(int doport, int *state)
 {
-	struct dio_struct dio;
-	const char *dio_node;
+	struct dio_struct dout;
+	const char *dout_node;
 	int fd;
 
-	if (obj_get_str(config, "DIO_NODE", &dio_node) < 0)
+	if (obj_get_str(config, "DOUT_NODE", &dout_node) < 0)
 		return E_CONFERR;
 
-	fd = open(dio_node, O_RDWR);
+	fd = open(dout_node, O_RDWR);
 	if (fd < 0) {
-		sprintf(mx_errmsg, "open %s: %s", dio_node, strerror(errno));
+		sprintf(mx_errmsg, "open %s: %s", dout_node, strerror(errno));
 		return E_SYSFUNCERR;
 	}
 
-	dio.port = doport;
-	if (ioctl(fd, IOCTL_GET_DOUT, &dio) < 0) {
+	dout.port = doport;
+	if (ioctl(fd, IOCTL_GET_DOUT, &dout) < 0) {
 		sprintf(mx_errmsg, "ioctl: IOCTL_GET_DOUT: %s", strerror(errno));
 		close(fd);
 		return E_SYSFUNCERR;
 	}
 	close(fd);
 
-	*state = dio.data;
+	*state = dout.data;
 	return E_SUCCESS;
 }
 
 static int get_din_state_ioctl(int diport, int *state)
 {
-	struct dio_struct dio;
-	const char *dio_node;
+	struct dio_struct din;
+	const char *din_node;
 	int fd;
 
-	if (obj_get_str(config, "DIO_NODE", &dio_node) < 0)
+	if (obj_get_str(config, "DIN_NODE", &din_node) < 0)
 		return E_CONFERR;
 
-	fd = open(dio_node, O_RDWR);
+	fd = open(din_node, O_RDWR);
 	if (fd < 0) {
-		sprintf(mx_errmsg, "open %s: %s", dio_node, strerror(errno));
+		sprintf(mx_errmsg, "open %s: %s", din_node, strerror(errno));
 		return E_SYSFUNCERR;
 	}
 
-	dio.port = diport;
-	if (ioctl(fd, IOCTL_GET_DIN, &dio) < 0) {
+	din.port = diport;
+	if (ioctl(fd, IOCTL_GET_DIN, &din) < 0) {
 		sprintf(mx_errmsg, "ioctl: IOCTL_GET_DIN: %s", strerror(errno));
 		close(fd);
 		return E_SYSFUNCERR;
 	}
 	close(fd);
 
-	*state = dio.data;
+	*state = din.data;
 	return E_SUCCESS;
 }
 
