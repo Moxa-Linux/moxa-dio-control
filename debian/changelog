@@ -1,3 +1,11 @@
+moxa-dio-control (1.1.0+deb9) stretch; urgency=low
+
+  * Remove old version of mx-dio-ctl utility code.
+  * Add new mx_dio library codes and new mx-dio-ctl utility code.
+  * Redefine deb packaging
+
+-- Ken CJ Chou <KenCJ.Chou@moxa.com>  Sat, 24 Feb 2018 14:30:00 +0800
+
 moxa-dio-control (1.0.0) stretch; urgency=low
 
   * Initial release.
