@@ -60,6 +60,23 @@ void usage(FILE *fp)
 	fprintf(fp, "	# mx_dio_control -s 0 -n 2\n");
 }
 
+int my_atoi(const char *nptr, int *number)
+{
+	int tmp;
+
+	tmp = atoi(nptr);
+	if (tmp != 0) {
+		*number = tmp;
+		return 0;
+	} else {
+		if (!strcmp(nptr, "0")) {
+			*number = 0;
+			return 0;
+		}
+	}
+	return -1;
+}
+
 void do_action(struct action_struct action)
 {
 	switch (action.type) {
@@ -114,7 +131,10 @@ int main(int argc, char *argv[])
 				usage(stderr);
 				exit(99);
 			}
-			action.type = atoi(argv[optind - 1]);
+			if (my_atoi(optarg, &action.type) != 0) {
+				fprintf(stderr, "%s is not a number\n", optarg);
+				exit(1);
+			}
 			break;
 		case 's':
 			if (action.type != UNSET) {
@@ -123,10 +143,16 @@ int main(int argc, char *argv[])
 				exit(99);
 			}
 			action.type = SET_DOUT;
-			action.state = atoi(argv[optind - 1]);
+			if (my_atoi(optarg, &action.state) != 0) {
+				fprintf(stderr, "%s is not a number\n", optarg);
+				exit(1);
+			}
 			break;
 		case 'n':
-			action.port = atoi(argv[optind - 1]);
+			if (my_atoi(optarg, &action.port) != 0) {
+				fprintf(stderr, "%s is not a number\n", optarg);
+				exit(1);
+			}
 			break;
 		default:
 			usage(stderr);

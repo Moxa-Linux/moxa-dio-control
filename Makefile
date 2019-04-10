@@ -2,7 +2,7 @@ LIB_NAME = mx_dio
 SO_NAME = libmx_dio_ctl.so
 V_MAJOR = 1
 V_MINOR = 1
-V_REVISION = 0
+V_REVISION = 1
 VER_CODE = $(V_MAJOR).$(V_MINOR).$(V_REVISION)
 
 CROSS_COMPILE =
