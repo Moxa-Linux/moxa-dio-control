@@ -1,3 +1,10 @@
+moxa-dio-control (1.1.2+deb9) stretch; urgency=low
+
+  * Fix typo in the usage of `mx-dio-ctl`
+  * Separate DIN and DOUT device nodes
+
+ -- Elvis Yao <ElvisCW.Yao@moxa.com>  Thu, 06 Dec 2018 12:00:00 +0800
+
 moxa-dio-control (1.1.1+deb9) stretch; urgency=low
 
   * Fix getopt issue of `mx-dio-ctl`
