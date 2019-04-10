@@ -1,0 +1,15 @@
+Source: moxa-dio-control
+Section: utils
+Priority: required
+Maintainer: Harry YJ Jhou <HarryYJ.Jhou@moxa.com>
+Build-Depends: debhelper (>= 10), libjson-c-dev
+Standards-Version: 4.1.1
+Homepage: https://www.moxa.com/
+
+Package: moxa-dio-control
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: Moxa DIO control utility
+ This utility is target on Digital I/O controlling
+ in Moxa Linux platform.

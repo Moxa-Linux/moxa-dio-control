@@ -1,0 +1,6 @@
+moxa-dio-control (1.0.0) stretch; urgency=low
+
+  * Initial release.
+
+ -- Harry YJ Jhou <HarryYJ.Jhou@moxa.com>  Sat, 18 Nov 2017 00:08:04 +0800
+
