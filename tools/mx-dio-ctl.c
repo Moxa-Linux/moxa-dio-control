@@ -33,8 +33,6 @@ struct action_struct {
 	int state;
 };
 
-extern char mx_errmsg[256];
-
 void usage(FILE *fp)
 {
 	fprintf(fp, "Usage:\n");
@@ -82,7 +80,6 @@ void do_action(struct action_struct action)
 	case GET_DIN:
 		if (mx_din_get_state(action.port, &action.state) < 0) {
 			fprintf(stderr, "Failed to get DIN state\n");
-			fprintf(stderr, "%s\n", mx_errmsg);
 			exit(1);
 		}
 		printf("DIN port %d state: %d\n", action.port, action.state);
@@ -90,7 +87,6 @@ void do_action(struct action_struct action)
 	case GET_DOUT:
 		if (mx_dout_get_state(action.port, &action.state) < 0) {
 			fprintf(stderr, "Failed to get DOUT state\n");
-			fprintf(stderr, "%s\n", mx_errmsg);
 			exit(1);
 		}
 		printf("DOUT port %d state: %d\n", action.port, action.state);
@@ -98,7 +94,6 @@ void do_action(struct action_struct action)
 	case SET_DOUT:
 		if (mx_dout_set_state(action.port, action.state) < 0) {
 			fprintf(stderr, "Failed to set DOUT state\n");
-			fprintf(stderr, "%s\n", mx_errmsg);
 			exit(1);
 		}
 		printf("DOUT port %d state: %d\n", action.port, action.state);
@@ -183,7 +178,6 @@ int main(int argc, char *argv[])
 
 	if (mx_dio_init() < 0) {
 		fprintf(stderr, "Initialize Moxa dio control library failed\n");
-		fprintf(stderr, "%s\n", mx_errmsg);
 		exit(1);
 	}
 
