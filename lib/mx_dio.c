@@ -194,8 +194,10 @@ static int set_dout_state_ioctl(int doport, int state)
 	const char *dout_node;
 	int fd;
 
-	if (obj_get_str(config, "DOUT_NODE", &dout_node) < 0)
-		return -5; /* E_CONFERR */
+	if (obj_get_str(config, "DOUT_NODE", &dout_node) < 0) {
+		if (obj_get_str(config, "DIO_NODE", &dout_node) < 0)
+			return -5; /* E_CONFERR */
+	}
 
 	fd = open(dout_node, O_RDWR);
 	if (fd < 0)
@@ -218,8 +220,10 @@ static int get_dout_state_ioctl(int doport, int *state)
 	const char *dout_node;
 	int fd;
 
-	if (obj_get_str(config, "DOUT_NODE", &dout_node) < 0)
-		return -5; /* E_CONFERR */
+	if (obj_get_str(config, "DOUT_NODE", &dout_node) < 0) {
+		if (obj_get_str(config, "DIO_NODE", &dout_node) < 0)
+			return -5; /* E_CONFERR */
+	}
 
 	fd = open(dout_node, O_RDWR);
 	if (fd < 0)
@@ -242,8 +246,10 @@ static int get_din_state_ioctl(int diport, int *state)
 	const char *din_node;
 	int fd;
 
-	if (obj_get_str(config, "DIN_NODE", &din_node) < 0)
-		return -5; /* E_CONFERR */
+	if (obj_get_str(config, "DIN_NODE", &din_node) < 0) {
+		if (obj_get_str(config, "DIO_NODE", &din_node) < 0)
+			return -5; /* E_CONFERR */
+	}
 
 	fd = open(din_node, O_RDWR);
 	if (fd < 0)
