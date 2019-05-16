@@ -36,17 +36,17 @@ struct action_struct {
 void usage(FILE *fp)
 {
 	fprintf(fp, "Usage:\n");
-	fprintf(fp, "	mx-dio-ctl <-g #DOUT/DIN |-s #state > -n <#port>\n\n");
+	fprintf(fp, "	mx-dio-ctl -g <DOUT/DIN>|-s <state> -n <port>\n\n");
 	fprintf(fp, "OPTIONS:\n");
-	fprintf(fp, "	-g <#DI/DO>\n");
+	fprintf(fp, "	-g <DOUT/DIN>\n");
 	fprintf(fp, "		Get target to DOUT or DIN port\n");
 	fprintf(fp, "		0 --> DOUT\n");
 	fprintf(fp, "		1 --> DIN\n");
-	fprintf(fp, "	-s <#state>\n");
+	fprintf(fp, "	-s <state>\n");
 	fprintf(fp, "		Set state for target DOUT port\n");
 	fprintf(fp, "		0 --> LOW\n");
 	fprintf(fp, "		1 --> HIGH\n");
-	fprintf(fp, "	-n <#port>\n");
+	fprintf(fp, "	-n <port>\n");
 	fprintf(fp, "		Set target port number\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Example:\n");
