@@ -26,8 +26,7 @@
 #include <json-c/json.h>
 #include <moxa/mx_gpio.h>
 #include <moxa/mx_errno.h>
-
-#include "mx_dio.h"
+#include <mx_dio.h>
 
 #define CONF_FILE "/etc/moxa-configs/moxa-dio-control.json"
 #define CONF_VER_SUPPORTED "1.1.*"

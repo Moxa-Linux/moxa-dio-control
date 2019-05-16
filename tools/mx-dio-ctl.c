@@ -17,8 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#include "mx_dio.h"
+#include <mx_dio.h>
 
 #define UNSET -1
 
