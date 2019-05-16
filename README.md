@@ -1,55 +1,58 @@
-## Config example
+# moxa-dio-control
 
-### Path
-```
-/etc/moxa-configs/moxa-dio-control.json
-```
+`moxa-dio-control` is a C library for getting and setting Digital Input/Output
+ports state.
 
-### Description
+## Build
 
-* `CONFIG_VERSION`: The version of config file
-* `METHOD`: The method to manipulate DIO, including GPIO and IOCTL
-* `NUM_OF_DIN_PORTS`: The number of DIN ports on this device
-* `NUM_OF_DOUT_PORTS`: The number of DOUT ports on this device
-* `GPIO_NUMS_OF_DIN_PORTS`: The DIN ports' GPIO pin number
-* `GPIO_NUMS_OF_DOUT_PORTS`: The DOUT ports' GPIO pin number
-* `DIN_NODE`: The DIN device node of IOCTL
-* `DOUT_NODE`: The DOUT device node of IOCTL
-* `DIN_PORT_POLLING_INTERVAL`: The time interval between polling DIN ports for listening event
+This project use autotools as buildsystem. You can build this project by the following commands:
 
+* If the build target architecture is x86_64
 
-### Example1: UC-8410
+	```
+	# ./autogen.sh --host=x86_64-linux-gnu --includedir=/usr/include/moxa --libdir=/usr/lib/x86_64-linux-gnu --sbindir=/sbin
+	# make
+	# make install
+	```
+* If the build target architecture is armhf
 
-```
-{
-	"CONFIG_VERSION": "1.1.0",
+	```
+	# ./autogen.sh --host=arm-linux-gnueabihf --includedir=/usr/include/moxa --libdir=/usr/lib/arm-linux-gnueabihf --sbindir=/sbin
+	# make
+	# make install
+	```
 
-	"METHOD": "IOCTL",
+The autogen script will execute ./configure and pass all the command-line
+arguments to it.
 
-	"NUM_OF_DIN_PORTS": 4,
-	"NUM_OF_DOUT_PORTS": 4,
-
-	"DIN_NODE": "/dev/di",
-	"DOUT_NODE": "/dev/do",
-
-	"DIN_PORT_POLLING_INTERVAL": 100
-}
-```
-
-### Example2: UC-5111-LX
+## Usage of mx-dio-ctl
 
 ```
-{
-	"CONFIG_VERSION": "1.1.0",
+Usage:
+	mx-dio-ctl -g <DOUT/DIN>|-s <state> -n <port>
 
-	"METHOD": "GPIO",
+OPTIONS:
+	-g <DOUT/DIN>
+		Get target to DOUT or DIN port
+		0 --> DOUT
+		1 --> DIN
+	-s <state>
+		Set state for target DOUT port
+		0 --> LOW
+		1 --> HIGH
+	-n <port>
+		Set target port number
 
-	"NUM_OF_DIN_PORTS": 4,
-	"NUM_OF_DOUT_PORTS": 4,
+Example:
+	Get value from DIN port 1
+	# mx-dio-ctl -g 1 -n 1
 
-	"GPIO_NUMS_OF_DIN_PORTS": [86, 87, 88, 89],
-	"GPIO_NUMS_OF_DOUT_PORTS": [54, 55, 56, 57],
-
-	"DIN_PORT_POLLING_INTERVAL": 100
-}
+	Set DOUT port 2 value to LOW
+	# mx-dio-ctl -s 0 -n 2
 ```
+
+## Documentation
+
+[Config Example](/Config_Example.md)
+
+[API Reference](/API_References.md)
