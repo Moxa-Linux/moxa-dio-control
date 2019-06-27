@@ -4,20 +4,20 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 export DEB_CFLAGS_MAINT_APPEND  = -Wall -pedantic
 export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 
-# Some variables:
-DEB_HOST_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
-
-ifeq ($(origin CC),default)
-CC := $(DEB_HOST_GNU_TYPE)-gcc
-STRIP := $(DEB_HOST_GNU_TYPE)-strip
-endif
 
 %:
 	dh $@
 
-override_dh_auto_build:
-	$(MAKE) CC=$(CC) STRIP=$(STRIP)
+override_dh_autoreconf:
+	NOCONFIGURE=true dh_autoreconf ./autogen.sh
 
-override_dh_missing:
-	dh_missing --fail-missing
+override_dh_auto_configure:
+	dh_auto_configure -- \
+		--prefix=/usr/ \
+		--includedir=/usr/include/moxa/ \
+		--libdir=/usr/lib/$(DEB_HOST_MULTIARCH)/ \
+		--sbindir=/sbin/
+
+override_dh_strip:
+	dh_strip --no-automatic-dbgsym

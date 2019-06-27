@@ -3,9 +3,7 @@ Priority: required
 Maintainer: Ken CJ Chou <KenCJ.Chou@moxa.com>
 Uploaders: Harry YJ Jhou <HarryYJ.Jhou@moxa.com>
 Build-Depends: debhelper (>= 10), 
-               dh-exec,
                libmoxa-gpio-control-dev (>= 1.0.0),
-               libmoxa-errno-dev (>= 1.0.0),
                libjson-c-dev
 Standards-Version: 4.1.2
 Section: libs
