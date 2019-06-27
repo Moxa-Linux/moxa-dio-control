@@ -1,3 +1,12 @@
+moxa-dio-control (1.2.0+deb9) stretch; urgency=low
+
+  * Remove mx_errmsg.
+  * Change install directory for libmx_dio_ctl.so*
+    from `/lib/<arch>` to `/usr/lib/<arch>`.
+  * Add new option style
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Thu, 27 Jun 2019 18:27:00 +0800
+
 moxa-dio-control (1.1.2+deb9) stretch; urgency=low
 
   * Fix typo in the usage of `mx-dio-ctl`
