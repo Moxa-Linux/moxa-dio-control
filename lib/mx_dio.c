@@ -19,15 +19,12 @@
 #include <string.h>
 #include <fcntl.h>
 #include <pthread.h>
-#include <errno.h>
 #include <sys/time.h>
 #include <sys/file.h>
 #include <sys/ioctl.h>
 #include <json-c/json.h>
 #include <moxa/mx_gpio.h>
-#include <moxa/mx_errno.h>
-
-#include "mx_dio.h"
+#include <mx_dio.h>
 
 #define CONF_FILE "/etc/moxa-configs/moxa-dio-control.json"
 #define CONF_VER_SUPPORTED "1.1.*"
@@ -65,7 +62,6 @@ static int lib_initialized;
 static struct json_object *config;
 static struct din_poll_thread_struct din_poll_thread;
 static struct din_event_struct *din_event;
-extern char mx_errmsg[256];
 
 /*
  * json-c utilities
@@ -73,10 +69,8 @@ extern char mx_errmsg[256];
 
 static inline int obj_get_obj(struct json_object *obj, char *key, struct json_object **val)
 {
-	if (!json_object_object_get_ex(obj, key, val)) {
-		sprintf(mx_errmsg, "json-c: can\'t get key: \"%s\"", key);
+	if (!json_object_object_get_ex(obj, key, val))
 		return -1;
-	}
 	return 0;
 }
 
@@ -115,10 +109,8 @@ static int obj_get_arr(struct json_object *obj, char *key, struct array_list **v
 
 static int arr_get_obj(struct array_list *arr, int idx, struct json_object **val)
 {
-	if (arr == NULL || idx >= arr->length) {
-		sprintf(mx_errmsg, "json-c: can\'t get index: %d", idx);
+	if (arr == NULL || idx >= arr->length)
 		return -1;
-	}
 
 	*val = array_list_get_idx(arr, idx);
 	return 0;
@@ -165,21 +157,15 @@ static int check_config_version_supported(const char *conf_ver)
 {
 	int cv[2], sv[2];
 
-	if (sscanf(conf_ver, "%d.%d.%*s", &cv[0], &cv[1]) < 0) {
-		sprintf(mx_errmsg, "sscanf: %s: %s", conf_ver, strerror(errno));
-		return E_SYSFUNCERR;
-	}
+	if (sscanf(conf_ver, "%d.%d.%*s", &cv[0], &cv[1]) < 0)
+		return -1; /* E_SYSFUNCERR */
 
-	if (sscanf(CONF_VER_SUPPORTED, "%d.%d.%*s", &sv[0], &sv[1]) < 0) {
-		sprintf(mx_errmsg, "sscanf: %s: %s", CONF_VER_SUPPORTED, strerror(errno));
-		return E_SYSFUNCERR;
-	}
+	if (sscanf(CONF_VER_SUPPORTED, "%d.%d.%*s", &sv[0], &sv[1]) < 0)
+		return -1; /* E_SYSFUNCERR */
 
-	if (cv[0] != sv[0] || cv[1] != sv[1]) {
-		sprintf(mx_errmsg, "Config version not supported, need to be %s", CONF_VER_SUPPORTED);
-		return E_UNSUPCONFVER;
-	}
-	return E_SUCCESS;
+	if (cv[0] != sv[0] || cv[1] != sv[1])
+		return -4; /* E_UNSUPCONFVER */
+	return 0;
 }
 
 static int init_din_event_array(void)
@@ -187,21 +173,19 @@ static int init_din_event_array(void)
 	int num_of_din_ports, i;
 
 	if (obj_get_int(config, "NUM_OF_DIN_PORTS", &num_of_din_ports) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
 	din_event = (struct din_event_struct *)
 		malloc(num_of_din_ports * sizeof(struct din_event_struct));
-	if (din_event == NULL) {
-		sprintf(mx_errmsg, "malloc: %s", strerror(errno));
-		return E_SYSFUNCERR;
-	}
+	if (din_event == NULL)
+		return -1; /* E_SYSFUNCERR */
 
 	for (i = 0; i < num_of_din_ports; i++) {
 		din_event[i].func = NULL;
 		din_event[i].mode = DIN_EVENT_CLEAR;
 		din_event[i].checking = 0;
 	}
-	return E_SUCCESS;
+	return 0;
 }
 
 static int set_dout_state_ioctl(int doport, int state)
@@ -210,25 +194,24 @@ static int set_dout_state_ioctl(int doport, int state)
 	const char *dout_node;
 	int fd;
 
-	if (obj_get_str(config, "DOUT_NODE", &dout_node) < 0)
-		return E_CONFERR;
+	if (obj_get_str(config, "DOUT_NODE", &dout_node) < 0) {
+		if (obj_get_str(config, "DIO_NODE", &dout_node) < 0)
+			return -5; /* E_CONFERR */
+	}
 
 	fd = open(dout_node, O_RDWR);
-	if (fd < 0) {
-		sprintf(mx_errmsg, "open %s: %s", dout_node, strerror(errno));
-		return E_SYSFUNCERR;
-	}
+	if (fd < 0)
+		return -1; /* E_SYSFUNCERR */
 
 	dout.port = doport;
 	dout.data = state;
 	if (ioctl(fd, IOCTL_SET_DOUT, &dout) < 0) {
-		sprintf(mx_errmsg, "ioctl: IOCTL_SET_DOUT: %s", strerror(errno));
 		close(fd);
-		return E_SYSFUNCERR;
+		return -1; /* E_SYSFUNCERR */
 	}
 	close(fd);
 
-	return E_SUCCESS;
+	return 0;
 }
 
 static int get_dout_state_ioctl(int doport, int *state)
@@ -237,25 +220,24 @@ static int get_dout_state_ioctl(int doport, int *state)
 	const char *dout_node;
 	int fd;
 
-	if (obj_get_str(config, "DOUT_NODE", &dout_node) < 0)
-		return E_CONFERR;
+	if (obj_get_str(config, "DOUT_NODE", &dout_node) < 0) {
+		if (obj_get_str(config, "DIO_NODE", &dout_node) < 0)
+			return -5; /* E_CONFERR */
+	}
 
 	fd = open(dout_node, O_RDWR);
-	if (fd < 0) {
-		sprintf(mx_errmsg, "open %s: %s", dout_node, strerror(errno));
-		return E_SYSFUNCERR;
-	}
+	if (fd < 0)
+		return -1; /* E_SYSFUNCERR */
 
 	dout.port = doport;
 	if (ioctl(fd, IOCTL_GET_DOUT, &dout) < 0) {
-		sprintf(mx_errmsg, "ioctl: IOCTL_GET_DOUT: %s", strerror(errno));
 		close(fd);
-		return E_SYSFUNCERR;
+		return -1; /* E_SYSFUNCERR */
 	}
 	close(fd);
 
 	*state = dout.data;
-	return E_SUCCESS;
+	return 0;
 }
 
 static int get_din_state_ioctl(int diport, int *state)
@@ -264,25 +246,24 @@ static int get_din_state_ioctl(int diport, int *state)
 	const char *din_node;
 	int fd;
 
-	if (obj_get_str(config, "DIN_NODE", &din_node) < 0)
-		return E_CONFERR;
+	if (obj_get_str(config, "DIN_NODE", &din_node) < 0) {
+		if (obj_get_str(config, "DIO_NODE", &din_node) < 0)
+			return -5; /* E_CONFERR */
+	}
 
 	fd = open(din_node, O_RDWR);
-	if (fd < 0) {
-		sprintf(mx_errmsg, "open %s: %s", din_node, strerror(errno));
-		return E_SYSFUNCERR;
-	}
+	if (fd < 0)
+		return -1; /* E_SYSFUNCERR */
 
 	din.port = diport;
 	if (ioctl(fd, IOCTL_GET_DIN, &din) < 0) {
-		sprintf(mx_errmsg, "ioctl: IOCTL_GET_DIN: %s", strerror(errno));
 		close(fd);
-		return E_SYSFUNCERR;
+		return -1; /* E_SYSFUNCERR */
 	}
 	close(fd);
 
 	*state = din.data;
-	return E_SUCCESS;
+	return 0;
 }
 
 static int set_dout_state_gpio(int doport, int state)
@@ -291,10 +272,10 @@ static int set_dout_state_gpio(int doport, int state)
 	int ret, gpio_num;
 
 	if (obj_get_arr(config, "GPIO_NUMS_OF_DOUT_PORTS", &gpio_nums_of_doports) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
 	if (arr_get_int(gpio_nums_of_doports, doport, &gpio_num) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
 	if (state == DIO_STATE_LOW) {
 		ret = mx_gpio_set_value(gpio_num, GPIO_VALUE_LOW);
@@ -306,7 +287,7 @@ static int set_dout_state_gpio(int doport, int state)
 			return ret;
 	}
 
-	return E_SUCCESS;
+	return 0;
 }
 
 static int get_dout_state_gpio(int doport, int *state)
@@ -315,16 +296,16 @@ static int get_dout_state_gpio(int doport, int *state)
 	int ret, gpio_num;
 
 	if (obj_get_arr(config, "GPIO_NUMS_OF_DOUT_PORTS", &gpio_nums_of_doports) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
 	if (arr_get_int(gpio_nums_of_doports, doport, &gpio_num) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
 	ret = mx_gpio_get_value(gpio_num, state);
 	if (ret < 0)
 		return ret;
 
-	return E_SUCCESS;
+	return 0;
 }
 
 static int get_din_state_gpio(int diport, int *state)
@@ -333,16 +314,16 @@ static int get_din_state_gpio(int diport, int *state)
 	int ret, gpio_num;
 
 	if (obj_get_arr(config, "GPIO_NUMS_OF_DIN_PORTS", &gpio_nums_of_diports) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
 	if (arr_get_int(gpio_nums_of_diports, diport, &gpio_num) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
 	ret = mx_gpio_get_value(gpio_num, state);
 	if (ret < 0)
 		return ret;
 
-	return E_SUCCESS;
+	return 0;
 }
 
 static unsigned long count_timeval_diff(struct timeval t1, struct timeval t2)
@@ -431,16 +412,14 @@ int mx_dio_init(void)
 	const char *conf_ver;
 
 	if (lib_initialized)
-		return E_SUCCESS;
+		return 0;
 
 	config = json_object_from_file(CONF_FILE);
-	if (config == NULL) {
-		sprintf(mx_errmsg, "json-c: load file %s failed", CONF_FILE);
-		return E_CONFERR;
-	}
+	if (config == NULL)
+		return -5; /* E_CONFERR */
 
 	if (obj_get_str(config, "CONFIG_VERSION", &conf_ver) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
 	ret = check_config_version_supported(conf_ver);
 	if (ret < 0)
@@ -452,7 +431,7 @@ int mx_dio_init(void)
 		return ret;
 
 	lib_initialized = 1;
-	return E_SUCCESS;
+	return 0;
 }
 
 int mx_dout_set_state(int doport, int state)
@@ -460,33 +439,27 @@ int mx_dout_set_state(int doport, int state)
 	const char *method;
 	int num_of_dout_ports;
 
-	if (!lib_initialized) {
-		sprintf(mx_errmsg, "Library is not initialized");
-		return E_LIBNOTINIT;
-	}
+	if (!lib_initialized)
+		return -3; /* E_LIBNOTINIT */
 
 	if (obj_get_int(config, "NUM_OF_DOUT_PORTS", &num_of_dout_ports) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
-	if (doport < 0 || doport >= num_of_dout_ports) {
-		sprintf(mx_errmsg, "DO port out of index: %d", doport);
-		return E_INVAL;
-	}
+	if (doport < 0 || doport >= num_of_dout_ports)
+		return -2; /* E_INVAL */
 
-	if (state != DIO_STATE_LOW && state != DIO_STATE_HIGH) {
-		sprintf(mx_errmsg, "Invalid state: %d", state);
-		return E_INVAL;
-	}
+	if (state != DIO_STATE_LOW && state != DIO_STATE_HIGH)
+		return -2; /* E_INVAL */
 
 	if (obj_get_str(config, "METHOD", &method) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
 	if (strcmp(method, "IOCTL") == 0)
 		return set_dout_state_ioctl(doport, state);
 	else if (strcmp(method, "GPIO") == 0)
 		return set_dout_state_gpio(doport, state);
 
-	return E_CONFERR;
+	return -5; /* E_CONFERR */
 }
 
 int mx_dout_get_state(int doport, int *state)
@@ -494,28 +467,24 @@ int mx_dout_get_state(int doport, int *state)
 	const char *method;
 	int num_of_dout_ports;
 
-	if (!lib_initialized) {
-		sprintf(mx_errmsg, "Library is not initialized");
-		return E_LIBNOTINIT;
-	}
+	if (!lib_initialized)
+		return -3; /* E_LIBNOTINIT */
 
 	if (obj_get_int(config, "NUM_OF_DOUT_PORTS", &num_of_dout_ports) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
-	if (doport < 0 || doport >= num_of_dout_ports) {
-		sprintf(mx_errmsg, "DO port out of index: %d", doport);
-		return E_INVAL;
-	}
+	if (doport < 0 || doport >= num_of_dout_ports)
+		return -2; /* E_INVAL */
 
 	if (obj_get_str(config, "METHOD", &method) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
 	if (strcmp(method, "IOCTL") == 0)
 		return get_dout_state_ioctl(doport, state);
 	else if (strcmp(method, "GPIO") == 0)
 		return get_dout_state_gpio(doport, state);
 
-	return E_CONFERR;
+	return -5; /* E_CONFERR */
 }
 
 int mx_din_get_state(int diport, int *state)
@@ -523,28 +492,24 @@ int mx_din_get_state(int diport, int *state)
 	const char *method;
 	int num_of_din_ports;
 
-	if (!lib_initialized) {
-		sprintf(mx_errmsg, "Library is not initialized");
-		return E_LIBNOTINIT;
-	}
+	if (!lib_initialized)
+		return -3; /* E_LIBNOTINIT */
 
 	if (obj_get_int(config, "NUM_OF_DIN_PORTS", &num_of_din_ports) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
-	if (diport < 0 || diport >= num_of_din_ports) {
-		sprintf(mx_errmsg, "DI port out of index: %d", diport);
-		return E_INVAL;
-	}
+	if (diport < 0 || diport >= num_of_din_ports)
+		return -2; /* E_INVAL */
 
 	if (obj_get_str(config, "METHOD", &method) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
 	if (strcmp(method, "IOCTL") == 0)
 		return get_din_state_ioctl(diport, state);
 	else if (strcmp(method, "GPIO") == 0)
 		return get_din_state_gpio(diport, state);
 
-	return E_CONFERR;
+	return -5; /* E_CONFERR */
 }
 
 //int mx_dout_set_multi_state(u32 set_bits, u32 clear_bits);
@@ -553,42 +518,34 @@ int mx_din_set_event(int diport, void (*func)(int diport), int mode, unsigned lo
 {
 	int num_of_din_ports;
 
-	if (!lib_initialized) {
-		sprintf(mx_errmsg, "Library is not initialized");
-		return E_LIBNOTINIT;
-	}
+	if (!lib_initialized)
+		return -3; /* E_LIBNOTINIT */
 
 	if (obj_get_int(config, "NUM_OF_DIN_PORTS", &num_of_din_ports) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
-	if (diport < 0 || diport >= num_of_din_ports) {
-		sprintf(mx_errmsg, "DI port out of index: %d", diport);
-		return E_INVAL;
-	}
+	if (diport < 0 || diport >= num_of_din_ports)
+		return -2; /* E_INVAL */
 
 	if (func == NULL || mode == DIN_EVENT_CLEAR) {
 		if (din_poll_thread.flag == 0)
-			return E_SUCCESS;
+			return 0;
 
 		pthread_mutex_lock(&din_poll_thread.lock);
 		din_event[diport].func = NULL;
 		din_event[diport].mode = DIN_EVENT_CLEAR;
 		din_event[diport].duration = 0;
 		pthread_mutex_unlock(&din_poll_thread.lock);
-		return E_SUCCESS;
+		return 0;
 	}
 
 	if (mode != DIN_EVENT_LOW_TO_HIGH &&
 		mode != DIN_EVENT_HIGH_TO_LOW &&
-		mode != DIN_EVENT_STATE_CHANGE) {
-		sprintf(mx_errmsg, "Invalid mode: %d", mode);
-		return E_INVAL;
-	}
+		mode != DIN_EVENT_STATE_CHANGE)
+		return -2; /* E_INVAL */
 
-	if (duration != 0 && (duration < 40 || duration > 3600000)){
-		sprintf(mx_errmsg, "Duration out of range: %ld", duration);
-		return E_INVAL;
-	}
+	if (duration != 0 && (duration < 40 || duration > 3600000))
+		return -2; /* E_INVAL */
 
 	if (din_poll_thread.flag == 0) {
 		pthread_mutex_init(&din_poll_thread.lock, NULL);
@@ -607,27 +564,23 @@ int mx_din_set_event(int diport, void (*func)(int diport), int mode, unsigned lo
 		pthread_mutex_unlock(&din_poll_thread.lock);
 	}
 
-	return E_SUCCESS;
+	return 0;
 }
 
 int mx_din_get_event(int diport, int *mode, unsigned long *duration)
 {
 	int num_of_din_ports;
 
-	if (!lib_initialized) {
-		sprintf(mx_errmsg, "Library is not initialized");
-		return E_LIBNOTINIT;
-	}
+	if (!lib_initialized)
+		return -3; /* E_LIBNOTINIT */
 
 	if (obj_get_int(config, "NUM_OF_DIN_PORTS", &num_of_din_ports) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
-	if (diport < 0 || diport >= num_of_din_ports) {
-		sprintf(mx_errmsg, "DI port out of index: %d", diport);
-		return E_INVAL;
-	}
+	if (diport < 0 || diport >= num_of_din_ports)
+		return -2; /* E_INVAL */
 
 	*mode = din_event[diport].mode;
 	*duration = din_event[diport].duration / 1000;
-	return E_SUCCESS;
+	return 0;
 }
