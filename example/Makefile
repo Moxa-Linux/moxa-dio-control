@@ -1,9 +1,7 @@
-CC := gcc
-STRIP := strip
+CC ?= gcc
 
 all:
-	$(CC) -Wall -lmx_dio_ctl dio-test.c -o dio-test
-	$(STRIP) -s dio-test
+	$(CC) -Wall -lpthread -lmx_dio_ctl dio-test.c -o dio-test
 
 .PHONY: clean
 clean:
