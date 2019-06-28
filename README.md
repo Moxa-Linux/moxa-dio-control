@@ -29,26 +29,26 @@ arguments to it.
 
 ```
 Usage:
-	mx-dio-ctl -g <DOUT/DIN>|-s <state> -n <port>
+	mx-dio-ctl <-i|-o <#port number> [-s <#state>]>
 
 OPTIONS:
-	-g <DOUT/DIN>
-		Get target to DOUT or DIN port
-		0 --> DOUT
-		1 --> DIN
-	-s <state>
+	-i <#DIN port number>
+	-o <#DOUT port number>
+	-s <#state>
 		Set state for target DOUT port
 		0 --> LOW
 		1 --> HIGH
-	-n <port>
-		Set target port number
 
 Example:
-	Get value from DIN port 1
-	# mx-dio-ctl -g 1 -n 1
+	Get value from DIN port 0
+	# mx-dio-ctl -i 0
+	Get value from DOUT port 0
+	# mx-dio-ctl -o 0
 
-	Set DOUT port 2 value to LOW
-	# mx-dio-ctl -s 0 -n 2
+	Set DOUT port 0 value to LOW
+	# mx-dio-ctl -o 0 -s 0
+	Set DOUT port 0 value to HIGH
+	# mx-dio-ctl -o 0 -s 1
 ```
 
 ## Documentation
