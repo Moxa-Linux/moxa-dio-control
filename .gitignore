@@ -1,0 +1,25 @@
+!.gitignore
+*.o
+*.lo
+*.la
+
+# autotools stuff
+.deps/
+.libs/
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache/
+config.log
+config.status
+config.guess
+config.sub
+configure
+libtool
+ltmain.sh
+m4/
+depcomp
+compile
+install-sh
+missing
+
