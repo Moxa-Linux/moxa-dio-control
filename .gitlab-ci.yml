@@ -1,0 +1,84 @@
+variables:
+    GIT_DEPTH: "1"
+
+stages:
+    - develop_build
+    - release_build
+    - prepare_develop_debs
+    - prepare_release_debs
+
+develop_build:
+    tags:
+        - Runner-Stretch
+    stage: develop_build
+    except:
+      refs:
+        - stretch
+    script:
+        - dpkg --add-architecture armhf
+        - dpkg --add-architecture arm64
+        - echo "deb http://10.144.54.241/mirror-stretch_20190701 stretch main contrib non-free" > /etc/apt/sources.list
+        - curl -fsSL http://10.144.54.241/mxcore_test_apt.gpg | apt-key add -
+        - echo "deb http://10.144.5.245:8080/mil-develop stretch main" >> /etc/apt/sources.list
+        - curl -fsSL http://10.144.5.245:8080/mil_internal_apt.gpg | apt-key add -
+        - apt-get update
+        - apt-get install crossbuild-essential-armhf crossbuild-essential-arm64 libmoxa-gpio-control-dev:armhf libjson-c-dev:armhf libmoxa-gpio-control-dev:arm64 libjson-c-dev:arm64 -y --allow-unauthenticated
+        - dpkg-buildpackage -us -uc -b -aarmhf
+        - dpkg-buildpackage -us -uc -b -aarm64
+        - mv ../*.deb .
+    artifacts:
+        name: "${CI_PROJECT_NAME}"
+        paths:
+        - ./*.deb
+
+release_build:
+    tags:
+        - Runner-Stretch
+    stage: release_build
+    only:
+      refs:
+        - stretch
+    script:
+        - dpkg --add-architecture armhf
+        - dpkg --add-architecture arm64
+        - echo "deb http://10.144.54.241/mirror-stretch_20190701 stretch main contrib non-free" > /etc/apt/sources.list
+        - curl -fsSL http://10.144.54.241/mxcore_test_apt.gpg | apt-key add -
+        - echo "deb http://10.144.5.245:8080/mil-release stretch main" >> /etc/apt/sources.list
+        - curl -fsSL http://10.144.5.245:8080/mil_internal_apt.gpg | apt-key add -
+        - apt-get update
+        - apt-get install crossbuild-essential-armhf crossbuild-essential-arm64 libmoxa-gpio-control-dev:armhf libjson-c-dev:armhf libmoxa-gpio-control-dev:arm64 libjson-c-dev:arm64 -y --allow-unauthenticated
+        - dpkg-buildpackage -us -uc -b -aarmhf
+        - dpkg-buildpackage -us -uc -b -aarm64
+        - mv ../*.deb .
+    artifacts:
+        name: "${CI_PROJECT_NAME}"
+        paths:
+        - ./*.deb
+
+prepare_develop_debs:
+    tags:
+        - Runner-Stretch
+    stage: prepare_develop_debs
+    only:
+      refs:
+        - stretch-develop
+    dependencies:
+        - develop_build
+    script:
+        - mkdir -p /cache/stretch/develop/
+        - cp *.deb /cache/stretch/develop/
+        - ls /cache/stretch/develop/
+
+prepare_release_debs:
+    tags:
+        - Runner-Stretch
+    stage: prepare_release_debs
+    only:
+      refs:
+        - stretch
+    dependencies:
+        - release_build
+    script:
+        - mkdir -p /cache/stretch/release/
+        - cp *.deb /cache/stretch/release/
+        - ls /cache/stretch/release/
