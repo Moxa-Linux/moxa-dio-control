@@ -2,93 +2,48 @@ variables:
     GIT_DEPTH: "1"
 
 stages:
-    - develop_build
-    - release_build
-    - prepare_develop_debs
-    - prepare_release_debs
+    - mil-internal-release_build
+    - prepare_mil-internal-release_debs
 
-develop_build:
+mil-internal-release_build:
     tags:
         - Runner-Stretch
-    stage: develop_build
-    except:
-      refs:
-        - stretch
+    stage: mil-internal-release_build
     script:
         - dpkg --add-architecture armhf
         - dpkg --add-architecture arm64
-        - dpkg --add-architecture amd64
-        - echo "deb http://mil-internal-apt:8080/mirror-debian_20190701 stretch main contrib non-free" > /etc/apt/sources.list
-        - echo "deb http://mil-internal-apt:8080/mil-develop stretch main" >> /etc/apt/sources.list
-        - curl -fsSL http://mil-internal-apt:8080/mil_internal_apt.gpg | apt-key add -
-        - apt-get update
-        - apt-get install -y --allow-unauthenticated
-          crossbuild-essential-armhf libmoxa-gpio-control-dev:armhf libjson-c-dev:armhf
-          crossbuild-essential-arm64 libmoxa-gpio-control-dev:arm64 libjson-c-dev:arm64
-          build-essential:amd64 libmoxa-gpio-control-dev:amd64 libjson-c-dev:amd64
-        - dpkg-buildpackage -us -uc -b -aarmhf
-        - dpkg-buildpackage -us -uc -b -aarm64
-        - dpkg-buildpackage -us -uc -b -aamd64
-        - mv ../*.deb .
-    artifacts:
-        name: "${CI_PROJECT_NAME}"
-        paths:
-        - ./*.deb
-
-release_build:
-    tags:
-        - Runner-Stretch
-    stage: release_build
-    only:
-      refs:
-        - stretch
-    script:
-        - dpkg --add-architecture armhf
-        - dpkg --add-architecture arm64
-        - dpkg --add-architecture amd64
         - echo "deb http://mil-internal-apt:8080/mirror-debian_20200211 stretch main" > /etc/apt/sources.list
         - echo "deb http://mil-internal-apt:8080/mil-internal-release stretch main" >> /etc/apt/sources.list
         - curl -fsSL http://mil-internal-apt:8080/mil_internal_apt.gpg | apt-key add -
         - apt-get update
         - apt-get install -y --allow-unauthenticated
-          crossbuild-essential-armhf libmoxa-gpio-control-dev:armhf libjson-c-dev:armhf
-          crossbuild-essential-arm64 libmoxa-gpio-control-dev:arm64 libjson-c-dev:arm64
-          build-essential:amd64 libmoxa-gpio-control-dev:amd64 libjson-c-dev:amd64
+          libmoxa-gpio-control-dev:armhf crossbuild-essential-armhf libjson-c-dev:armhf
+          libmoxa-gpio-control-dev:arm64 crossbuild-essential-arm64 libjson-c-dev:arm64
+          libmoxa-gpio-control-dev:amd64 build-essential libjson-c-dev
         - dpkg-buildpackage -us -uc -b -aarmhf
         - dpkg-buildpackage -us -uc -b -aarm64
         - dpkg-buildpackage -us -uc -b -aamd64
         - mv ../*.deb .
+        - mv ../*.buildinfo .
+        - mv ../*.changes .
     artifacts:
         name: "${CI_PROJECT_NAME}"
         paths:
         - ./*.deb
+        - ./*.buildinfo
+        - ./*.changes
 
-prepare_develop_debs:
+prepare_mil-internal-release_debs:
     tags:
         - Runner-Stretch
-    stage: prepare_develop_debs
+    stage: prepare_mil-internal-release_debs
     only:
       refs:
-        - stretch-develop
+        - stretch/master
     dependencies:
-        - develop_build
+        - mil-internal-release_build
     when: manual
     script:
-        - mkdir -p /cache/stretch/develop/
-        - cp *.deb /cache/stretch/develop/
-        - ls /cache/stretch/develop/
-
-prepare_release_debs:
-    tags:
-        - Runner-Stretch
-    stage: prepare_release_debs
-    only:
-      refs:
-        - stretch
-    dependencies:
-        - release_build
-    when: manual
-    script:
-        - mkdir -p /cache/stretch/release/
-        - cp *.deb /cache/stretch/release/
-        - ls /cache/stretch/release/
+        - mkdir -p /cache/stretch/mil-internal-release/
+        - cp *.deb /cache/stretch/mil-internal-release/
+        - ls /cache/stretch/mil-internal-release/
